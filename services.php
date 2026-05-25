@@ -367,6 +367,32 @@ return [
                 'android_url' => 'intent://www.linkedin.com/feed/update/urn:li:activity:{id}/#Intent;package=com.linkedin.android;scheme=https;end',
                 'short_pattern' => '#^/li/(?P<id>[0-9]{10,25})$#',
             ],
+            'profile' => [
+                'parse' => static function (array $parts) use ($linkedinHosts): ?array {
+                    $host = strtolower((string) ($parts['host'] ?? ''));
+                    if (!in_array($host, $linkedinHosts, true)) {
+                        return null;
+                    }
+                    $path = trim((string) ($parts['path'] ?? ''), '/');
+                    $segments = $path === '' ? [] : explode('/', $path);
+                    if (count($segments) !== 2 || ($segments[0] ?? '') !== 'in') {
+                        return null;
+                    }
+                    $handle = $segments[1];
+                    if (preg_match('/^[A-Za-z0-9_-]{3,100}$/', $handle) !== 1) {
+                        return null;
+                    }
+                    return ['handle' => $handle];
+                },
+                'short_path' => '/li/in/{handle}',
+                'canonical_url' => 'https://www.linkedin.com/in/{handle|urlenc}/',
+                // iOS: dedykowany URL scheme wymusza otwarcie aplikacji LinkedIn.
+                // Universal Link (HTTPS) nie działa, gdy URL jest ustawiany przez
+                // window.location w Safari na tej samej karcie — Apple celowo to blokuje.
+                'ios_url' => 'linkedin://profile/{handle|urlenc}',
+                'android_url' => 'intent://www.linkedin.com/in/{handle}/#Intent;package=com.linkedin.android;scheme=https;end',
+                'short_pattern' => '#^/li/in/(?P<handle>[A-Za-z0-9_-]{3,100})$#',
+            ],
         ],
         ];
     })(),

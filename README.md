@@ -35,7 +35,7 @@ Optional: edit `translations.php` for copy, or extend `services.php` to add prov
 | **Instagram** | `/ig/` | Posts, Reels, IGTV (`/p/`, `/reel/`, `/tv/`), profiles |
 | **X** (Twitter) | `/x/` | Status / tweet URLs |
 | **Facebook** | `/fb/` | Reels, Watch videos (`facebook.com` and `fb.watch`), profile posts, profiles (`facebook.com/<handle>`, `fb.me/<handle>`) |
-| **LinkedIn** | `/li/` | Feed activity updates (`urn:li:activity:…`) |
+| **LinkedIn** | `/li/` | Feed activity updates (`urn:li:activity:…`), member profiles (`/in/<handle>`) |
 
 Hostnames and parsing rules live in [`services.php`](services.php). Pull requests that add providers or fix edge-case URLs are welcome.
 
