@@ -1,0 +1,32 @@
+<section class="mx-auto max-w-xl">
+    <p class="text-sm uppercase tracking-[0.2em] text-emerald-300">{{provider_label}}</p>
+    <h1 class="mt-4 text-3xl text-zinc-50"><span class="text-emerald-400">$</span> {{t.mobile_title}}</h1>
+    <p class="mt-4 text-lg leading-relaxed text-zinc-300">{{t.mobile_description}}</p>
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a id="open-link" class="border-2 border-emerald-400 bg-emerald-500/10 px-6 py-3 text-center text-base font-semibold text-emerald-200 transition hover:bg-emerald-400/20" href="{{attempt_url}}">[{{t.open_link}}]</a>
+        <a class="border border-zinc-500 px-6 py-3 text-center text-base text-zinc-100 transition hover:border-zinc-300 hover:bg-zinc-800" href="{{fallback_url}}">[{{t.fallback_link}}]</a>
+    </div>
+    <a class="mt-8 inline-flex text-sm text-zinc-400 hover:text-emerald-300" href="{{home_url}}">{{t.back_home}}</a>
+</section>
+<script>
+    (function () {
+        var attemptUrl = {{{attempt_url_json}}};
+        var fallbackUrl = {{{fallback_url_json}}};
+        var openButton = document.getElementById("open-link");
+
+        function tryOpen() {
+            window.location.href = attemptUrl;
+            window.setTimeout(function () {
+                window.location.href = fallbackUrl;
+            }, 1800);
+        }
+
+        window.setTimeout(tryOpen, 120);
+
+        openButton.addEventListener("click", function () {
+            window.setTimeout(function () {
+                window.location.href = fallbackUrl;
+            }, 1800);
+        });
+    }());
+</script>

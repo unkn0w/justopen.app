@@ -1,0 +1,10 @@
+# Defense-in-depth: if the main .htaccess rule fails for any reason,
+# this file still denies direct access to templates.
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

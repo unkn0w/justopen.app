@@ -1,0 +1,81 @@
+<section class="mx-auto max-w-5xl">
+    <h1 class="text-3xl leading-tight text-zinc-50 sm:text-4xl"><span class="text-emerald-400">$</span> {{t.hero_title}}<span class="ml-1 inline-block h-6 w-2 translate-y-1 animate-pulse bg-emerald-400 sm:h-8">&nbsp;</span></h1>
+    <p class="mt-5 text-lg leading-relaxed text-zinc-300">{{t.hero_description}}</p>
+
+    <div class="mt-10 w-full">
+        <form method="post" action="/" class="space-y-4">
+            <input type="hidden" name="lang" value="{{lang}}">
+            <label class="block text-base text-zinc-300" for="url">{{t.input_label}}</label>
+            <div class="flex items-stretch border-2 border-zinc-700 bg-zinc-950 focus-within:border-emerald-400">
+                <span class="select-none px-4 py-4 text-xl text-emerald-400">&gt;</span>
+                <input id="url" name="url" type="url" inputmode="url" autocomplete="off" spellcheck="false" required autofocus class="w-full bg-transparent py-4 pr-4 text-lg text-zinc-50 placeholder-zinc-600 outline-none" placeholder="{{t.input_placeholder}}" value="{{input}}">
+            </div>
+            {{#if error}}
+            <div class="border border-red-500/70 bg-red-500/10 px-4 py-3 text-base text-red-300">
+                <span class="font-semibold text-red-200">{{t.error_validation_title}}:</span>
+                <span>{{error}}</span>
+            </div>
+            {{/if}}
+            <button type="submit" class="border-2 border-emerald-400 bg-emerald-500/10 px-6 py-3 text-base font-semibold text-emerald-200 transition hover:bg-emerald-400/20">{{t.submit}}</button>
+        </form>
+
+        <div class="mt-8">
+            {{#if result}}
+            <section class="border border-emerald-500/60 bg-emerald-500/[0.06] p-5">
+                <p class="text-sm uppercase tracking-[0.2em] text-emerald-300">{{t.result_title}} &middot; {{result.provider_label}}</p>
+                <p class="mt-3 break-all text-xl font-semibold text-emerald-200">{{result.short_url}}</p>
+                <div class="mt-5 flex flex-wrap gap-2">
+                    <button id="copy-short-url" type="button" data-copy-url="{{result.short_url}}" class="border border-emerald-400 px-4 py-2 text-base font-semibold text-emerald-200 transition hover:bg-emerald-400/15">[{{t.copy_link}}]</button>
+                    <a class="border border-zinc-500 px-4 py-2 text-base text-zinc-100 transition hover:border-zinc-300 hover:bg-zinc-800" href="{{result.canonical_url}}">[{{t.fallback_link}}]</a>
+                </div>
+                <p id="copy-short-url-status" class="mt-4 text-sm text-emerald-300" aria-live="polite"></p>
+                <p class="mt-2 text-sm text-zinc-400">{{t.result_description}}</p>
+                <script>
+                    (function () {
+                        var button = document.getElementById("copy-short-url");
+                        var status = document.getElementById("copy-short-url-status");
+                        if (!button || !status) { return; }
+                        var shortUrl = button.getAttribute("data-copy-url") || "";
+                        var successMessage = {{{result.copy_success_json}}};
+                        var errorMessage = {{{result.copy_error_json}}};
+
+                        function setStatus(message) { status.textContent = message; }
+
+                        function fallbackCopy(text) {
+                            var textarea = document.createElement("textarea");
+                            textarea.value = text;
+                            textarea.setAttribute("readonly", "readonly");
+                            textarea.style.position = "absolute";
+                            textarea.style.left = "-9999px";
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            var copied = false;
+                            try { copied = document.execCommand("copy"); } catch (e) { copied = false; }
+                            document.body.removeChild(textarea);
+                            if (!copied) { throw new Error("copy-failed"); }
+                        }
+
+                        button.addEventListener("click", function () {
+                            try {
+                                if (navigator.clipboard && navigator.clipboard.writeText) {
+                                    navigator.clipboard.writeText(shortUrl)
+                                        .then(function () { setStatus(successMessage); })
+                                        .catch(function () {
+                                            try { fallbackCopy(shortUrl); setStatus(successMessage); }
+                                            catch (e) { setStatus(errorMessage); }
+                                        });
+                                } else {
+                                    fallbackCopy(shortUrl);
+                                    setStatus(successMessage);
+                                }
+                            } catch (e) {
+                                setStatus(errorMessage);
+                            }
+                        });
+                    })();
+                </script>
+            </section>
+            {{/if}}
+        </div>
+    </div>
+</section>
