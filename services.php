@@ -121,13 +121,15 @@ return [
                 },
                 'short_path' => '/ig/{type}/{id}',
                 'canonical_url' => 'https://www.instagram.com/{type}/{id}/',
-                // iOS: dedykowany URL scheme wymusza otwarcie aplikacji Instagram.
+                // iOS: dedykowany URL scheme wymusza otwarcie aplikacji.
                 // Universal Link (HTTPS) nie dziala, gdy URL jest ustawiany przez
-                // window.location w Safari na tej samej karcie - Apple celowo to blokuje.
+                // window.location w Safari - Apple celowo blokuje JS-driven UL.
                 'ios_url' => 'instagram://media?id={id|urlenc}',
-                // Android: S.browser_fallback_url zapewnia, ze brak aplikacji
-                // przekieruje na canonical_url zamiast pokazywac blad przegladarki.
-                'android_url' => 'intent://instagram.com/{type}/{id}/#Intent;package=com.instagram.android;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
+                // Android: HTTPS z parametrem ?igsh=... aktywuje App Links
+                // Instagrama. Gdy aplikacja jest zainstalowana, otwiera sie
+                // natywnie; gdy nie - otwiera sie strona web. Bez bledow
+                // ERR_UNKNOWN_URL_SCHEME (vs intent://).
+                'android_url' => 'https://www.instagram.com/{type}/{id}/?igsh={igsh}',
                 'short_pattern' => '#^/ig/(?P<type>p|reel|tv)/(?P<id>[A-Za-z0-9_-]{5,30})$#',
             ],
             'profile' => [
@@ -148,13 +150,15 @@ return [
                 },
                 'short_path' => '/ig/profile/{handle}',
                 'canonical_url' => 'https://www.instagram.com/{handle}/',
-                // iOS: dedykowany URL scheme wymusza otwarcie aplikacji Instagram.
+                // iOS: dedykowany URL scheme wymusza otwarcie aplikacji.
                 // Universal Link (HTTPS) nie dziala, gdy URL jest ustawiany przez
-                // window.location w Safari na tej samej karcie - Apple celowo to blokuje.
+                // window.location w Safari - Apple celowo blokuje JS-driven UL.
                 'ios_url' => 'instagram://user?username={handle|urlenc}',
-                // Android: S.browser_fallback_url zapewnia, ze brak aplikacji
-                // przekieruje na canonical_url zamiast pokazywac blad przegladarki.
-                'android_url' => 'intent://instagram.com/{handle}/#Intent;package=com.instagram.android;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
+                // Android: HTTPS z parametrem ?igsh=... aktywuje App Links
+                // Instagrama. Gdy aplikacja jest zainstalowana, otwiera sie
+                // natywnie; gdy nie - otwiera sie strona web. Bez bledow
+                // ERR_UNKNOWN_URL_SCHEME (vs intent://).
+                'android_url' => 'https://www.instagram.com/{handle}/?igsh={igsh}',
                 'short_pattern' => '#^/ig/profile/(?P<handle>[A-Za-z0-9._]{1,30})$#',
             ],
         ],

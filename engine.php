@@ -324,7 +324,12 @@ function jo_resolve_short_path(string $path): array
             }
 
             $canonical = jo_template_string((string) ($route['canonical_url'] ?? ''), $captured);
-            $context   = $captured + ['canonical_url' => $canonical];
+            // Instagram uzywa parametru ?igsh=... do aktywacji App Links (Android)
+            // i Universal Links (iOS). Wartosc nie jest weryfikowana - sluzy jako
+            // trigger natywnego deep-linkingu. Generujemy losowo (CSPRNG), format
+            // base64url 16 znakow (jak rzeczywiste tokeny share Instagrama).
+            $igsh      = rtrim(strtr(base64_encode(random_bytes(11)), '+/', '-_'), '=');
+            $context   = $captured + ['canonical_url' => $canonical, 'igsh' => $igsh];
 
             $iosUrl     = isset($route['ios_url'])     ? jo_template_string($route['ios_url'],     $context) : $canonical;
             $androidUrl = isset($route['android_url']) ? jo_template_string($route['android_url'], $context) : $canonical;
