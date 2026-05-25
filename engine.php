@@ -356,6 +356,7 @@ function jo_layout_context(string $lang, string $title, string $baseUrl): array
         'title'            => $title,
         'meta_description' => jo_t($lang, 'meta_description'),
         'home_url'         => $baseUrl . '/?lang=' . $lang,
+        'og_image'         => $baseUrl . '/ogimage.png',
         'language_pl_class' => $lang === 'pl' ? 'text-emerald-200' : 'text-zinc-200 hover:text-emerald-200',
         'language_en_class' => $lang === 'en' ? 'text-emerald-200' : 'text-zinc-200 hover:text-emerald-200',
     ];
