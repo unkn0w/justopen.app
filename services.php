@@ -184,22 +184,20 @@ return [
         ],
     ],
 
-    'fb' => [
+    'fb' => (static function (): array {
+        $facebookHosts = ['facebook.com', 'www.facebook.com', 'm.facebook.com'];
+        $fbWatchHosts  = ['fb.watch', 'www.fb.watch'];
+
+        return [
         'label' => 'Facebook',
-        'input_hosts' => [
-            'facebook.com',
-            'www.facebook.com',
-            'm.facebook.com',
-            'fb.watch',
-            'www.fb.watch',
-        ],
+        'input_hosts' => array_merge($facebookHosts, $fbWatchHosts),
         'routes' => [
             // fb.watch short host — input URL parsing only.
             // Reverse lookup is handled by the "watch" route below (same short_path).
             'watch_short_host' => [
-                'parse' => static function (array $parts): ?array {
+                'parse' => static function (array $parts) use ($fbWatchHosts): ?array {
                     $host = strtolower((string) ($parts['host'] ?? ''));
-                    if ($host !== 'fb.watch' && $host !== 'www.fb.watch') {
+                    if (!in_array($host, $fbWatchHosts, true)) {
                         return null;
                     }
                     $path = trim((string) ($parts['path'] ?? ''), '/');
@@ -214,9 +212,9 @@ return [
                 'canonical_url' => 'https://www.facebook.com/watch/?v={id|urlenc}',
             ],
             'reel' => [
-                'parse' => static function (array $parts): ?array {
+                'parse' => static function (array $parts) use ($facebookHosts): ?array {
                     $host = strtolower((string) ($parts['host'] ?? ''));
-                    if (strpos($host, 'facebook.com') === false) {
+                    if (!in_array($host, $facebookHosts, true)) {
                         return null;
                     }
                     $path = trim((string) ($parts['path'] ?? ''), '/');
@@ -237,9 +235,9 @@ return [
                 'short_pattern' => '#^/fb/reel/(?P<id>[0-9]{6,25})$#',
             ],
             'watch' => [
-                'parse' => static function (array $parts): ?array {
+                'parse' => static function (array $parts) use ($facebookHosts): ?array {
                     $host = strtolower((string) ($parts['host'] ?? ''));
-                    if (strpos($host, 'facebook.com') === false) {
+                    if (!in_array($host, $facebookHosts, true)) {
                         return null;
                     }
                     $path = trim((string) ($parts['path'] ?? ''), '/');
@@ -262,9 +260,9 @@ return [
                 'short_pattern' => '#^/fb/watch/(?P<id>[0-9A-Za-z_-]{4,40})$#',
             ],
             'post' => [
-                'parse' => static function (array $parts): ?array {
+                'parse' => static function (array $parts) use ($facebookHosts): ?array {
                     $host = strtolower((string) ($parts['host'] ?? ''));
-                    if (strpos($host, 'facebook.com') === false) {
+                    if (!in_array($host, $facebookHosts, true)) {
                         return null;
                     }
                     $path = trim((string) ($parts['path'] ?? ''), '/');
@@ -289,21 +287,20 @@ return [
                 'short_pattern' => '#^/fb/post/(?P<profile>[A-Za-z0-9._-]{3,100})/(?P<post_id>(?:pfbid)?[A-Za-z0-9]{10,130})$#',
             ],
         ],
-    ],
+        ];
+    })(),
 
-    'li' => [
+    'li' => (static function (): array {
+        $linkedinHosts = ['linkedin.com', 'www.linkedin.com', 'm.linkedin.com', 'mobile.linkedin.com'];
+
+        return [
         'label' => 'LinkedIn',
-        'input_hosts' => [
-            'linkedin.com',
-            'www.linkedin.com',
-            'm.linkedin.com',
-            'mobile.linkedin.com',
-        ],
+        'input_hosts' => $linkedinHosts,
         'routes' => [
             'activity' => [
-                'parse' => static function (array $parts): ?array {
+                'parse' => static function (array $parts) use ($linkedinHosts): ?array {
                     $host = strtolower((string) ($parts['host'] ?? ''));
-                    if (strpos($host, 'linkedin.com') === false) {
+                    if (!in_array($host, $linkedinHosts, true)) {
                         return null;
                     }
                     $path = trim((string) ($parts['path'] ?? ''), '/');
@@ -328,5 +325,6 @@ return [
                 'short_pattern' => '#^/li/(?P<id>[0-9]{10,25})$#',
             ],
         ],
-    ],
+        ];
+    })(),
 ];
