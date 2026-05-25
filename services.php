@@ -52,7 +52,7 @@ return [
                 'short_path' => '/yt/@{handle}',
                 'canonical_url' => 'https://www.youtube.com/@{handle}',
                 'ios_url' => 'youtube://www.youtube.com/@{handle}',
-                'android_url' => 'intent://www.youtube.com/@{handle}#Intent;package=com.google.android.youtube;scheme=https;end',
+                'android_url' => 'intent://www.youtube.com/@{handle}#Intent;package=com.google.android.youtube;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/yt/@(?P<handle>[A-Za-z0-9._-]{3,30})$#',
             ],
             'video' => [
@@ -83,7 +83,7 @@ return [
                 'short_path' => '/yt/{id}',
                 'canonical_url' => 'https://www.youtube.com/watch?v={id}',
                 'ios_url' => 'youtube://www.youtube.com/watch?v={id}',
-                'android_url' => 'intent://www.youtube.com/watch?v={id}#Intent;package=com.google.android.youtube;scheme=https;end',
+                'android_url' => 'intent://www.youtube.com/watch?v={id}#Intent;package=com.google.android.youtube;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/yt/(?P<id>[A-Za-z0-9_-]{11})$#',
             ],
         ],
@@ -121,8 +121,13 @@ return [
                 },
                 'short_path' => '/ig/{type}/{id}',
                 'canonical_url' => 'https://www.instagram.com/{type}/{id}/',
-                'ios_url' => 'https://www.instagram.com/{type}/{id}/',
-                'android_url' => 'intent://instagram.com/{type}/{id}/#Intent;package=com.instagram.android;scheme=https;end',
+                // iOS: dedykowany URL scheme wymusza otwarcie aplikacji Instagram.
+                // Universal Link (HTTPS) nie dziala, gdy URL jest ustawiany przez
+                // window.location w Safari na tej samej karcie - Apple celowo to blokuje.
+                'ios_url' => 'instagram://media?id={id|urlenc}',
+                // Android: S.browser_fallback_url zapewnia, ze brak aplikacji
+                // przekieruje na canonical_url zamiast pokazywac blad przegladarki.
+                'android_url' => 'intent://instagram.com/{type}/{id}/#Intent;package=com.instagram.android;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/ig/(?P<type>p|reel|tv)/(?P<id>[A-Za-z0-9_-]{5,30})$#',
             ],
             'profile' => [
@@ -143,8 +148,13 @@ return [
                 },
                 'short_path' => '/ig/profile/{handle}',
                 'canonical_url' => 'https://www.instagram.com/{handle}/',
-                'ios_url' => 'https://www.instagram.com/{handle}/',
-                'android_url' => 'intent://instagram.com/{handle}/#Intent;package=com.instagram.android;scheme=https;end',
+                // iOS: dedykowany URL scheme wymusza otwarcie aplikacji Instagram.
+                // Universal Link (HTTPS) nie dziala, gdy URL jest ustawiany przez
+                // window.location w Safari na tej samej karcie - Apple celowo to blokuje.
+                'ios_url' => 'instagram://user?username={handle|urlenc}',
+                // Android: S.browser_fallback_url zapewnia, ze brak aplikacji
+                // przekieruje na canonical_url zamiast pokazywac blad przegladarki.
+                'android_url' => 'intent://instagram.com/{handle}/#Intent;package=com.instagram.android;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/ig/profile/(?P<handle>[A-Za-z0-9._]{1,30})$#',
             ],
         ],
@@ -178,7 +188,7 @@ return [
                 'short_path' => '/x/{id}',
                 'canonical_url' => 'https://x.com/i/web/status/{id}',
                 'ios_url' => 'twitter://status?id={id}',
-                'android_url' => 'intent://x.com/i/web/status/{id}#Intent;package=com.twitter.android;scheme=https;end',
+                'android_url' => 'intent://x.com/i/web/status/{id}#Intent;package=com.twitter.android;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/x/(?P<id>[0-9]{5,25})$#',
             ],
         ],
@@ -232,7 +242,7 @@ return [
                 'short_path' => '/fb/reel/{id}',
                 'canonical_url' => 'https://www.facebook.com/reel/{id}',
                 'ios_url' => 'fb://facewebmodal/f?href={canonical_url|urlenc}',
-                'android_url' => 'intent://facebook.com/reel/{id}#Intent;package=com.facebook.katana;scheme=https;end',
+                'android_url' => 'intent://facebook.com/reel/{id}#Intent;package=com.facebook.katana;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/fb/reel/(?P<id>[0-9]{6,25})$#',
             ],
             'watch' => [
@@ -257,7 +267,7 @@ return [
                 'short_path' => '/fb/watch/{id}',
                 'canonical_url' => 'https://www.facebook.com/watch/?v={id|urlenc}',
                 'ios_url' => 'fb://facewebmodal/f?href={canonical_url|urlenc}',
-                'android_url' => 'intent://facebook.com/watch/?v={id}#Intent;package=com.facebook.katana;scheme=https;end',
+                'android_url' => 'intent://facebook.com/watch/?v={id}#Intent;package=com.facebook.katana;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/fb/watch/(?P<id>[0-9A-Za-z_-]{4,40})$#',
             ],
             'post' => [
@@ -284,7 +294,7 @@ return [
                 'short_path' => '/fb/post/{profile}/{post_id}',
                 'canonical_url' => 'https://www.facebook.com/{profile|urlenc}/posts/{post_id|urlenc}',
                 'ios_url' => 'fb://facewebmodal/f?href={canonical_url|urlenc}',
-                'android_url' => 'intent://facebook.com/{profile}/posts/{post_id}#Intent;package=com.facebook.katana;scheme=https;end',
+                'android_url' => 'intent://facebook.com/{profile}/posts/{post_id}#Intent;package=com.facebook.katana;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/fb/post/(?P<profile>[A-Za-z0-9._-]{3,100})/(?P<post_id>(?:pfbid)?[A-Za-z0-9]{10,130})$#',
             ],
             'profile' => [
@@ -326,7 +336,7 @@ return [
                 'short_path' => '/fb/profile/{handle}',
                 'canonical_url' => 'https://www.facebook.com/{handle}',
                 'ios_url' => 'fb://facewebmodal/f?href={canonical_url|urlenc}',
-                'android_url' => 'intent://facebook.com/{handle}#Intent;package=com.facebook.katana;scheme=https;end',
+                'android_url' => 'intent://facebook.com/{handle}#Intent;package=com.facebook.katana;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/fb/profile/(?P<handle>[A-Za-z0-9.]{5,50})$#',
             ],
         ],
@@ -364,7 +374,7 @@ return [
                 'short_path' => '/li/{id}',
                 'canonical_url' => 'https://www.linkedin.com/feed/update/urn:li:activity:{id}/',
                 'ios_url' => 'https://www.linkedin.com/feed/update/urn:li:activity:{id}/',
-                'android_url' => 'intent://www.linkedin.com/feed/update/urn:li:activity:{id}/#Intent;package=com.linkedin.android;scheme=https;end',
+                'android_url' => 'intent://www.linkedin.com/feed/update/urn:li:activity:{id}/#Intent;package=com.linkedin.android;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/li/(?P<id>[0-9]{10,25})$#',
             ],
             'profile' => [
@@ -390,7 +400,7 @@ return [
                 // Universal Link (HTTPS) nie działa, gdy URL jest ustawiany przez
                 // window.location w Safari na tej samej karcie — Apple celowo to blokuje.
                 'ios_url' => 'linkedin://profile/{handle|urlenc}',
-                'android_url' => 'intent://www.linkedin.com/in/{handle}/#Intent;package=com.linkedin.android;scheme=https;end',
+                'android_url' => 'intent://www.linkedin.com/in/{handle}/#Intent;package=com.linkedin.android;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/li/in/(?P<handle>[A-Za-z0-9_-]{3,100})$#',
             ],
         ],
