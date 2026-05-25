@@ -187,10 +187,11 @@ return [
     'fb' => (static function (): array {
         $facebookHosts = ['facebook.com', 'www.facebook.com', 'm.facebook.com'];
         $fbWatchHosts  = ['fb.watch', 'www.fb.watch'];
+        $fbMeHosts     = ['fb.me', 'www.fb.me'];
 
         return [
         'label' => 'Facebook',
-        'input_hosts' => array_merge($facebookHosts, $fbWatchHosts),
+        'input_hosts' => array_merge($facebookHosts, $fbWatchHosts, $fbMeHosts),
         'routes' => [
             // fb.watch short host — input URL parsing only.
             // Reverse lookup is handled by the "watch" route below (same short_path).
@@ -285,6 +286,48 @@ return [
                 'ios_url' => 'fb://facewebmodal/f?href={canonical_url|urlenc}',
                 'android_url' => 'intent://facebook.com/{profile}/posts/{post_id}#Intent;package=com.facebook.katana;scheme=https;end',
                 'short_pattern' => '#^/fb/post/(?P<profile>[A-Za-z0-9._-]{3,100})/(?P<post_id>(?:pfbid)?[A-Za-z0-9]{10,130})$#',
+            ],
+            'profile' => [
+                'parse' => static function (array $parts) use ($facebookHosts, $fbMeHosts): ?array {
+                    $host = strtolower((string) ($parts['host'] ?? ''));
+                    $allowedHosts = array_merge($facebookHosts, $fbMeHosts);
+                    if (!in_array($host, $allowedHosts, true)) {
+                        return null;
+                    }
+                    $path = trim((string) ($parts['path'] ?? ''), '/');
+                    if ($path === '') {
+                        return null;
+                    }
+                    $segments = explode('/', $path);
+                    if (count($segments) !== 1) {
+                        return null;
+                    }
+                    $handle = $segments[0];
+                    // Reserved Facebook paths that must not be treated as profile handles.
+                    $reserved = [
+                        'watch', 'reel', 'reels', 'post', 'posts', 'profile.php',
+                        'p', 'sharer', 'plugins', 'dialog', 'login', 'logout',
+                        'settings', 'help', 'business', 'gaming', 'marketplace',
+                        'pages', 'groups', 'events', 'photo', 'photos', 'video',
+                        'videos', 'story', 'stories', 'search', 'friends',
+                        'notifications', 'messages', 'bookmarks', 'about',
+                        'terms', 'policies', 'careers', 'developers', 'ads',
+                        'blog', 'press', 'home.php', 'index.php', 'sharer.php',
+                        'recover', 'security', 'privacy',
+                    ];
+                    if (in_array(strtolower($handle), $reserved, true)) {
+                        return null;
+                    }
+                    if (preg_match('/^(?!\.)[A-Za-z0-9.]{5,50}$/', $handle) !== 1) {
+                        return null;
+                    }
+                    return ['handle' => $handle];
+                },
+                'short_path' => '/fb/profile/{handle}',
+                'canonical_url' => 'https://www.facebook.com/{handle}',
+                'ios_url' => 'fb://facewebmodal/f?href={canonical_url|urlenc}',
+                'android_url' => 'intent://facebook.com/{handle}#Intent;package=com.facebook.katana;scheme=https;end',
+                'short_pattern' => '#^/fb/profile/(?P<handle>[A-Za-z0-9.]{5,50})$#',
             ],
         ],
         ];
