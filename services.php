@@ -381,6 +381,55 @@ return [
                 'android_url' => 'intent://www.linkedin.com/feed/update/urn:li:activity:{id}/#Intent;package=com.linkedin.android;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/li/(?P<id>[0-9]{10,25})$#',
             ],
+            // /posts/{author}_{slug}-{activity_id}-{tracking_code}/ — format
+            // „social share" z przycisku Share w aplikacji LinkedIn (iOS/Android/web).
+            //
+            // UWAGA: kanonicznym URL-em MUSI pozostać pełny slug. LinkedIn nie
+            // potrafi rozwiązać postu wyłącznie z activity ID (np. URL postaci
+            // /feed/update/urn:li:activity:{id}/ zwraca „Nie znaleziono publikacji"
+            // gdy ID pochodzi ze sluga share-owego — LinkedIn używa wewnętrznie
+            // dwóch URN: urn:li:activity i urn:li:share, na ten sam post).
+            // Dlatego short_path zawiera cały slug, a nie tylko ID.
+            'post' => [
+                'parse' => static function (array $parts) use ($linkedinHosts): ?array {
+                    $host = strtolower((string) ($parts['host'] ?? ''));
+                    if (!in_array($host, $linkedinHosts, true)) {
+                        return null;
+                    }
+                    $path = trim((string) ($parts['path'] ?? ''), '/');
+                    $segments = $path === '' ? [] : explode('/', $path);
+                    if (count($segments) < 2 || ($segments[0] ?? '') !== 'posts') {
+                        return null;
+                    }
+                    $slug = $segments[1];
+                    if (preg_match('/^[A-Za-z0-9._-]{20,200}$/', $slug) !== 1) {
+                        return null;
+                    }
+                    // Slug share-owy LinkedIn ma sztywny kształt:
+                    //   {author}_{title}-{10-25 cyfr}-{2-20 znaków alfanum.}
+                    // - podkreślnik oddziela autora od tytułu,
+                    // - na końcu są cyfry activity ID i krótki kod śledzenia.
+                    // Wymuszenie tego kształtu odrzuca warianty typu
+                    // /posts/activity-{id}-{code}/ (LinkedIn zwraca tu 404)
+                    // oraz dowolne inne ścieżki /posts/*.
+                    if (strpos($slug, '_') === false) {
+                        return null;
+                    }
+                    if (preg_match('/-[0-9]{10,25}-[A-Za-z0-9_-]{2,20}$/', $slug) !== 1) {
+                        return null;
+                    }
+
+                    return ['slug' => $slug];
+                },
+                'short_path' => '/li/p/{slug}',
+                'canonical_url' => 'https://www.linkedin.com/posts/{slug}/',
+                // iOS: Universal Link na HTTPS — gdy aplikacja LinkedIn jest
+                // zainstalowana, otwiera natywnie post; bez aplikacji — strona web.
+                // Schemat linkedin:// nie wspiera /posts/{slug} (tylko activity URN).
+                'ios_url' => 'https://www.linkedin.com/posts/{slug}/',
+                'android_url' => 'intent://www.linkedin.com/posts/{slug}/#Intent;package=com.linkedin.android;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
+                'short_pattern' => '#^/li/p/(?P<slug>[A-Za-z0-9._-]{20,200})$#',
+            ],
             'profile' => [
                 'parse' => static function (array $parts) use ($linkedinHosts): ?array {
                     $host = strtolower((string) ($parts['host'] ?? ''));
