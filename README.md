@@ -39,6 +39,35 @@ Optional: edit `translations.php` for copy, or extend `services.php` to add prov
 
 Hostnames and parsing rules live in [`services.php`](services.php). Pull requests that add providers or fix edge-case URLs are welcome.
 
+## HTTP API
+
+For programmatic use there is a single JSON endpoint that mirrors the home-page form — same parsing, same validation, no HTML.
+
+**`POST /api/shorten`** — body is `application/x-www-form-urlencoded` with a single `url` field.
+
+```bash
+curl -X POST -d 'url=https://www.youtube.com/watch?v=dQw4w9WgXcQ' https://yourdomain.com/api/shorten
+```
+
+**`200 OK`**
+
+```json
+{
+  "ok": true,
+  "short_url": "https://yourdomain.com/yt/dQw4w9WgXcQ",
+  "canonical_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "provider": "yt",
+  "provider_label": "YouTube"
+}
+```
+
+| Status | When | Body |
+|--------|------|------|
+| `400` | Unsupported or malformed URL | `{"ok": false, "error": "…"}` |
+| `405` | Method other than `POST` (response carries `Allow: POST`) | `{"ok": false, "error": "…"}` |
+
+Like the rest of the app the endpoint is **stateless** — nothing is stored; the short link is derived from the input on each call. There is **no authentication or rate limiting**; if you expose it publicly, put rate limiting in front of it (web server or proxy layer).
+
 ## Project layout
 
 ```

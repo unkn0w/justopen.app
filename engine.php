@@ -299,6 +299,17 @@ function jo_parse_input_url(string $input): array
     throw new InvalidArgumentException('Unsupported provider.');
 }
 
+function jo_generate_short_link(string $inputUrl, string $baseUrl): array
+{
+    $parsed = jo_parse_input_url($inputUrl);
+    return [
+        'short_url'      => $baseUrl . $parsed['short_path'],
+        'canonical_url'  => $parsed['canonical_url'],
+        'provider'       => $parsed['provider'],
+        'provider_label' => $parsed['label'],
+    ];
+}
+
 function jo_resolve_short_path(string $path): array
 {
     $path = trim($path);
@@ -439,6 +450,46 @@ function jo_render_404(string $lang, string $message, string $baseUrl): string
  * Routing — entry point used by index.php
  * ------------------------------------------------------------------------- */
 
+function jo_route_api_shorten(string $method, array $post, string $baseUrl, string $lang): array
+{
+    $headers = jo_security_headers();
+    $headers['Content-Type'] = 'application/json; charset=UTF-8';
+
+    if ($method !== 'POST') {
+        $headers['Allow'] = 'POST';
+        return [
+            'type'    => 'json',
+            'status'  => 405,
+            'headers' => $headers,
+            'body'    => jo_json(['ok' => false, 'error' => jo_t($lang, 'error_method_not_allowed')]),
+        ];
+    }
+
+    try {
+        $result = jo_generate_short_link((string) ($post['url'] ?? ''), $baseUrl);
+    } catch (InvalidArgumentException $exception) {
+        return [
+            'type'    => 'json',
+            'status'  => 400,
+            'headers' => $headers,
+            'body'    => jo_json(['ok' => false, 'error' => jo_t($lang, 'error_invalid_url')]),
+        ];
+    }
+
+    return [
+        'type'    => 'json',
+        'status'  => 200,
+        'headers' => $headers,
+        'body'    => jo_json([
+            'ok'             => true,
+            'short_url'      => $result['short_url'],
+            'canonical_url'  => $result['canonical_url'],
+            'provider'       => $result['provider'],
+            'provider_label' => $result['provider_label'],
+        ]),
+    ];
+}
+
 function jo_route_request(array $server, array $get, array $post): array
 {
     $method     = strtoupper((string) ($server['REQUEST_METHOD'] ?? 'GET'));
@@ -468,12 +519,7 @@ function jo_route_request(array $server, array $get, array $post): array
             $inputUrl       = jo_limit_input((string) ($post['url'] ?? ''));
             $view['input']  = $inputUrl;
             try {
-                $parsed = jo_parse_input_url($inputUrl);
-                $view['result'] = [
-                    'short_url'      => $baseUrl . $parsed['short_path'],
-                    'canonical_url'  => $parsed['canonical_url'],
-                    'provider_label' => $parsed['label'],
-                ];
+                $view['result'] = jo_generate_short_link($inputUrl, $baseUrl);
             } catch (InvalidArgumentException $exception) {
                 $view['error'] = jo_t($lang, 'error_invalid_url');
             }
@@ -485,6 +531,10 @@ function jo_route_request(array $server, array $get, array $post): array
             'headers' => $headers,
             'body'    => jo_render_home($view),
         ];
+    }
+
+    if ($path === '/api/shorten' || $path === '/api/shorten/') {
+        return jo_route_api_shorten($method, $post, $baseUrl, $lang);
     }
 
     try {
