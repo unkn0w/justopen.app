@@ -52,7 +52,7 @@ return [
                 'short_path' => '/yt/@{handle}',
                 'canonical_url' => 'https://www.youtube.com/@{handle}',
                 'ios_url' => 'youtube://www.youtube.com/@{handle}',
-                'android_url' => 'intent://www.youtube.com/@{handle}#Intent;package=com.google.android.youtube;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
+                'android_url' => 'intent://www.youtube.com/@{handle}#Intent;scheme=vnd.youtube;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/yt/@(?P<handle>[A-Za-z0-9._-]{3,30})$#',
             ],
             'video' => [
@@ -83,7 +83,7 @@ return [
                 'short_path' => '/yt/{id}',
                 'canonical_url' => 'https://www.youtube.com/watch?v={id}',
                 'ios_url' => 'youtube://www.youtube.com/watch?v={id}',
-                'android_url' => 'intent://www.youtube.com/watch?v={id}#Intent;package=com.google.android.youtube;scheme=https;S.browser_fallback_url={canonical_url|urlenc};end',
+                'android_url' => 'intent://www.youtube.com/watch?v={id}#Intent;scheme=vnd.youtube;S.browser_fallback_url={canonical_url|urlenc};end',
                 'short_pattern' => '#^/yt/(?P<id>[A-Za-z0-9_-]{11})$#',
             ],
         ],
